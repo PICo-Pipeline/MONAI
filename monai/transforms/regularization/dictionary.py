@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from collections.abc import Hashable
 
 import numpy as np
@@ -47,7 +48,7 @@ class MixUpd(MapTransform, RandomizableTransform):
         return self
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         # all the keys share the same random state
         self.mixup.randomize(None)
         for k in self.key_iterator(d):
@@ -82,7 +83,7 @@ class CutMixd(MapTransform, RandomizableTransform):
         return self
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         first_key: Hashable = self.first_key(d)
         if first_key == ():
             out: dict[Hashable, NdarrayOrTensor] = convert_to_tensor(d, track_meta=get_track_meta())
@@ -113,7 +114,7 @@ class CutOutd(MapTransform, RandomizableTransform):
         return self
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         first_key: Hashable = self.first_key(d)
         if first_key == ():
             out: dict[Hashable, NdarrayOrTensor] = convert_to_tensor(d, track_meta=get_track_meta())

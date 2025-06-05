@@ -234,7 +234,7 @@ class ImageStats(Analyzer):
             functions. If the input has nan/inf, the stats results will be nan/inf.
 
         """
-        d = dict(data)
+        d = deepcopy(data)
         start = time.time()
         restore_grad_state = torch.is_grad_enabled()
         torch.set_grad_enabled(False)
@@ -323,7 +323,7 @@ class FgImageStats(Analyzer):
             functions. If the input has nan/inf, the stats results will be nan/inf.
         """
 
-        d = dict(data)
+        d = deepcopy(data)
         start = time.time()
         restore_grad_state = torch.is_grad_enabled()
         torch.set_grad_enabled(False)
@@ -450,7 +450,7 @@ class LabelStats(Analyzer):
             The stats operation uses numpy and torch to compute max, min, and other
             functions. If the input has nan/inf, the stats results will be nan/inf.
         """
-        d: dict[Hashable, MetaTensor] = dict(data)
+        d: dict[Hashable, MetaTensor] = deepcopy(data)
         start = time.time()
         if isinstance(d[self.image_key], (torch.Tensor, MetaTensor)) and d[self.image_key].device.type == "cuda":
             using_cuda = True
@@ -824,7 +824,7 @@ class FilenameStats(Analyzer):
         super().__init__(stats_name, {})
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
 
         if self.key:  # when there is no (label) file, key can be None
             if self.key not in d:  # check whether image/label is in the data
@@ -917,7 +917,7 @@ class ImageHistogram(Analyzer):
             functions. If the input has nan/inf, the stats results will be nan/inf.
         """
 
-        d = dict(data)
+        d = deepcopy(data)
 
         ndas = convert_to_numpy(d[self.image_key], wrap_sequence=True)  # (1,H,W,D) or (C,H,W,D)
         nr_channels = np.shape(ndas)[0]

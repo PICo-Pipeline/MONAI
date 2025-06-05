@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 import warnings
 from collections.abc import Sequence
 
@@ -214,7 +215,7 @@ class Relabeld(MapTransform):
             )
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         dataset_name = d.get(self.dataset_key, "default")
         _m = look_up_option(dataset_name, self.mappers, default=None)
         if _m is None:

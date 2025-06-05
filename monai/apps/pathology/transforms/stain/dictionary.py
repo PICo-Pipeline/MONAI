@@ -16,7 +16,7 @@ Class names are ended with 'd' to denote dictionary-based transforms.
 """
 
 from __future__ import annotations
-
+from copy import deepcopy
 from collections.abc import Hashable, Mapping
 
 import numpy as np
@@ -57,7 +57,7 @@ class ExtractHEStainsd(MapTransform):
         self.extractor = ExtractHEStains(tli=tli, alpha=alpha, beta=beta, max_cref=max_cref)
 
     def __call__(self, data: Mapping[Hashable, np.ndarray]) -> dict[Hashable, np.ndarray]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.extractor(d[key])
         return d
@@ -103,7 +103,7 @@ class NormalizeHEStainsd(MapTransform):
         self.normalizer = NormalizeHEStains(tli=tli, alpha=alpha, beta=beta, target_he=target_he, max_cref=max_cref)
 
     def __call__(self, data: Mapping[Hashable, np.ndarray]) -> dict[Hashable, np.ndarray]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.normalizer(d[key])
         return d

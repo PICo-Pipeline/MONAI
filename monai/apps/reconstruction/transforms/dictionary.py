@@ -12,6 +12,7 @@
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping, Sequence
+from copy import deepcopy
 
 import numpy as np
 from numpy import ndarray
@@ -57,7 +58,7 @@ class ExtractDataKeyFromMetaKeyd(MapTransform):
         Returns:
             the new data dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.keys:
             if key in d[self.meta_key]:
                 d[key] = d[self.meta_key][key]  # type: ignore
@@ -130,7 +131,7 @@ class RandomKspaceMaskd(RandomizableTransform, MapTransform):
         Returns:
             the new data dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key + "_masked"], d[key + "_masked_ifft"] = self.masker(d[key])
             d[FastMRIKeys.MASK] = self.masker.mask
@@ -229,7 +230,7 @@ class ReferenceBasedSpatialCropd(MapTransform, InvertibleTransform):
         Returns:
             the new data dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
 
         # compute roi_size according to self.ref_key
         roi_size = d[self.ref_key].shape[1:]  # first dimension is not spatial (could be channel)
@@ -302,7 +303,7 @@ class ReferenceBasedNormalizeIntensityd(MapTransform):
         Returns:
             the new data dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
 
         # prepare the normalizer based on self.ref_key
         if self.default_normalizer.channel_wise:

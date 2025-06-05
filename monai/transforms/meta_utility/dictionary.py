@@ -17,6 +17,7 @@ Class names are ended with 'd' to denote dictionary-based transforms.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from collections.abc import Hashable, Mapping, Sequence
 
 import numpy as np
@@ -63,7 +64,7 @@ class FromMetaTensord(MapTransform, InvertibleTransform):
         self.as_tensor_output = tuple(d == "tensor" for d in ensure_tuple_rep(data_type, len(self.keys)))
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key, t in self.key_iterator(d, self.as_tensor_output):
             im: MetaTensor = d[key]  # type: ignore
             d.update(im.as_dict(key, output_type=torch.Tensor if t else np.ndarray))
@@ -71,7 +72,7 @@ class FromMetaTensord(MapTransform, InvertibleTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             # check transform
             _ = self.get_most_recent_transform(d, key)
@@ -97,7 +98,7 @@ class ToMetaTensord(MapTransform, InvertibleTransform):
     backend = [TransformBackends.TORCH, TransformBackends.NUMPY, TransformBackends.CUPY]
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             self.push_transform(d, key)
             im = d[key]
@@ -108,7 +109,7 @@ class ToMetaTensord(MapTransform, InvertibleTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             # check transform
             _ = self.get_most_recent_transform(d, key)

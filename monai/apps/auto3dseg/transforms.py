@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 import warnings
 from collections.abc import Hashable, Mapping
 
@@ -57,7 +58,7 @@ class EnsureSameShaped(MapTransform):
         self.warn = warn
 
     def __call__(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         image_shape = d[self.source_key].shape[1:]
         for key in self.key_iterator(d):
             label_shape = d[key].shape[1:]

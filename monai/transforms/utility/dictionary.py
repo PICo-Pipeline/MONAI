@@ -215,7 +215,7 @@ class Identityd(MapTransform):
         self.identity = Identity()
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.identity(d[key])
         return d
@@ -240,7 +240,7 @@ class AsChannelLastd(MapTransform):
         self.converter = AsChannelLast(channel_dim=channel_dim)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -271,7 +271,7 @@ class EnsureChannelFirstd(MapTransform):
         self.adjuster = EnsureChannelFirst(strict_check=strict_check, channel_dim=channel_dim)
 
     def __call__(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             meta_dict = d[key].meta if isinstance(d[key], MetaTensor) else None  # type: ignore[attr-defined]
             d[key] = self.adjuster(d[key], meta_dict)
@@ -297,7 +297,7 @@ class RepeatChanneld(MapTransform):
         self.repeater = RepeatChannel(repeats)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.repeater(d[key])
         return d
@@ -322,7 +322,7 @@ class RemoveRepeatedChanneld(MapTransform):
         self.repeater = RemoveRepeatedChannel(repeats)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.repeater(d[key])
         return d
@@ -367,7 +367,7 @@ class SplitDimd(MapTransform, MultiSampleTrait):
     def __call__(
         self, data: Mapping[Hashable, torch.Tensor]
     ) -> dict[Hashable, torch.Tensor] | list[dict[Hashable, torch.Tensor]]:
-        d = dict(data)
+        d = deepcopy(data)
         all_keys = list(set(self.key_iterator(d)))
 
         if self.list_output:
@@ -422,7 +422,7 @@ class CastToTyped(MapTransform):
         self.converter = CastToType()
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key, dtype in self.key_iterator(d, self.dtype):
             d[key] = self.converter(d[key], dtype=dtype)
 
@@ -462,14 +462,14 @@ class ToTensord(MapTransform, InvertibleTransform):
         self.converter = ToTensor(dtype=dtype, device=device, wrap_sequence=wrap_sequence, track_meta=track_meta)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
             self.push_transform(d, key)
         return d
 
     def inverse(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             # Remove the applied transform
             self.pop_transform(d, key)
@@ -526,7 +526,7 @@ class EnsureTyped(MapTransform):
         )
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key, dtype in self.key_iterator(d, self.dtype):
             d[key] = self.converter(d[key], dtype)
         return d
@@ -559,7 +559,7 @@ class ToNumpyd(MapTransform):
         self.converter = ToNumpy(dtype=dtype, wrap_sequence=wrap_sequence)
 
     def __call__(self, data: Mapping[Hashable, Any]) -> dict[Hashable, Any]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -593,7 +593,7 @@ class ToCupyd(MapTransform):
         self.converter = ToCupy(dtype=dtype, wrap_sequence=wrap_sequence)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -617,7 +617,7 @@ class ToPILd(MapTransform):
         self.converter = ToPIL()
 
     def __call__(self, data: Mapping[Hashable, Any]) -> dict[Hashable, Any]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -635,7 +635,7 @@ class Transposed(MapTransform, InvertibleTransform):
         self.transform = Transpose(indices)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.transform(d[key])
             # if None was supplied then numpy uses range(a.ndim)[::-1]
@@ -644,7 +644,7 @@ class Transposed(MapTransform, InvertibleTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, Any]) -> dict[Hashable, Any]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             transform = self.get_most_recent_transform(d, key)
             # Create inverse transform
@@ -689,7 +689,7 @@ class DeleteItemsd(MapTransform):
                 return d
             return {k: v for k, v in d.items() if (use_re and not re.search(key, f"{k}")) or (not use_re and k != key)}
 
-        d = dict(data)
+        d = deepcopy(data)
         for key, use_re in zip(cast(Sequence[str], self.keys), self.use_re):
             d = _delete_item(key.split(self.sep), d, use_re)
 
@@ -736,7 +736,7 @@ class FlattenSubKeysd(MapTransform):
         self.prefix = prefix
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             # set the sub-keys for the specified key
             sub_keys = d[key].keys() if self.sub_keys is None else self.sub_keys
@@ -779,7 +779,7 @@ class SqueezeDimd(MapTransform):
         self.converter = SqueezeDim(dim=dim, update_meta=update_meta)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -840,7 +840,7 @@ class DataStatsd(MapTransform):
         self.printer = DataStats(name=name)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for (
             key,
             prefix,
@@ -890,7 +890,7 @@ class SimulateDelayd(MapTransform):
         self.delayer = SimulateDelay()
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key, delay_time in self.key_iterator(d, self.delay_time):
             d[key] = self.delayer(d[key], delay_time=delay_time)
         return d
@@ -946,7 +946,7 @@ class CopyItemsd(MapTransform):
             KeyError: When a key in ``self.names`` already exists in ``data``.
 
         """
-        d = dict(data)
+        d = deepcopy(data)
         key_len = len(self.keys)
         for i in range(self.times):
             for key, new_key in self.key_iterator(d, self.names[i * key_len : (i + 1) * key_len]):
@@ -986,7 +986,7 @@ class ConcatItemsd(MapTransform):
             TypeError: When the item type is not in ``Union[numpy.ndarray, torch.Tensor, MetaTensor]``.
 
         """
-        d = dict(data)
+        d = deepcopy(data)
         output = []
         data_type = None
         for key in self.key_iterator(d):
@@ -1063,7 +1063,7 @@ class Lambdad(MapTransform, InvertibleTransform):
         self._lambd = Lambda(track_meta=track_meta)
 
     def __call__(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key, func, overwrite in self.key_iterator(d, self.func, self.overwrite):
             ret = self._lambd(img=d[key], func=func)
             if overwrite and isinstance(overwrite, bool):
@@ -1073,7 +1073,7 @@ class Lambdad(MapTransform, InvertibleTransform):
         return d
 
     def inverse(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key, overwrite in self.key_iterator(d, self.overwrite):
             ret = self._lambd.inverse(data=d[key])
             if overwrite:
@@ -1132,7 +1132,7 @@ class RandLambdad(Lambdad, RandomizableTransform):
 
     def __call__(self, data):
         self.randomize(data)
-        d = dict(data)
+        d = deepcopy(data)
         for key, func, overwrite in self.key_iterator(d, self.func, self.overwrite):
             ret = d[key]
             if not isinstance(ret, MetaTensor):
@@ -1147,7 +1147,7 @@ class RandLambdad(Lambdad, RandomizableTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key, overwrite in self.key_iterator(d, self.overwrite):
             if isinstance(d[key], MetaTensor):
                 tr = self.pop_transform(d[key])
@@ -1188,7 +1188,7 @@ class LabelToMaskd(MapTransform):
         self.converter = LabelToMask(select_labels=select_labels, merge_channels=merge_channels)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
 
@@ -1234,7 +1234,7 @@ class FgBgToIndicesd(MapTransform, MultiSampleTrait):
         self.converter = FgBgToIndices(image_threshold, output_shape)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         image = d[self.image_key] if self.image_key else None
         for key in self.key_iterator(d):
             d[str(key) + self.fg_postfix], d[str(key) + self.bg_postfix] = self.converter(d[key], image)
@@ -1282,7 +1282,7 @@ class ClassesToIndicesd(MapTransform, MultiSampleTrait):
         self.converter = ClassesToIndices(num_classes, image_threshold, output_shape, max_samples_per_class)
 
     def __call__(self, data: Mapping[Hashable, Any]):
-        d = dict(data)
+        d = deepcopy(data)
         image = d[self.image_key] if self.image_key else None
         for key in self.key_iterator(d):
             d[str(key) + self.indices_postfix] = self.converter(d[key], image)
@@ -1308,7 +1308,7 @@ class ConvertToMultiChannelBasedOnBratsClassesd(MapTransform):
         self.converter = ConvertToMultiChannelBasedOnBratsClasses()
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -1359,7 +1359,7 @@ class AddExtremePointsChanneld(Randomizable, MapTransform):
         self.points = get_extreme_points(label, rand_state=self.R, background=self.background, pert=self.pert)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         label = d[self.label_key]
         if label.shape[0] != 1:
             raise ValueError("Only supports single channel labels!")
@@ -1409,7 +1409,7 @@ class TorchVisiond(MapTransform):
         self.trans = TorchVision(name, *args, **kwargs)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.trans(d[key])
         return d
@@ -1446,7 +1446,7 @@ class RandTorchVisiond(MapTransform, RandomizableTrait):
         self.trans = TorchVision(name, *args, **kwargs)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.trans(d[key])
         return d
@@ -1540,7 +1540,7 @@ class MapLabelValued(MapTransform):
         self.mapper = MapLabelValue(orig_labels=orig_labels, target_labels=target_labels, dtype=dtype)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.mapper(d[key])
         return d
@@ -1603,7 +1603,7 @@ class IntensityStatsd(MapTransform):
         self.meta_key_postfix = ensure_tuple_rep(meta_key_postfix, len(self.keys))
 
     def __call__(self, data) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key, mask_key, meta_key, meta_key_postfix in self.key_iterator(
             d, self.mask_keys, self.meta_keys, self.meta_key_postfix
         ):
@@ -1637,7 +1637,7 @@ class ToDeviced(MapTransform):
         self.converter = ToDevice(device=device, **kwargs)
 
     def __call__(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -1675,7 +1675,7 @@ class CuCIMd(MapTransform):
             Dict[Hashable, `cupy.ndarray`]
 
         """
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.trans(d[key])
         return d
@@ -1716,7 +1716,7 @@ class RandCuCIMd(MapTransform, RandomizableTrait):
             Dict[Hashable, `cupy.ndarray`]
 
         """
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.trans(d[key])
         return d
@@ -1743,7 +1743,7 @@ class AddCoordinateChannelsd(MapTransform):
         self.add_coordinate_channels = AddCoordinateChannels(spatial_dims=spatial_dims)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.add_coordinate_channels(d[key])
         return d
@@ -1781,7 +1781,7 @@ class ImageFilterd(MapTransform):
         self.filter = ImageFilter(kernel, kernel_size, **kwargs)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.filter(d[key])
         return d
@@ -1827,7 +1827,7 @@ class RandImageFilterd(MapTransform, RandomizableTransform):
         self.filter = ImageFilter(kernel, kernel_size, **kwargs)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if self._do_transform:
             for key in self.key_iterator(d):
@@ -1884,7 +1884,7 @@ class ApplyTransformToPointsd(MapTransform, InvertibleTransform):
         )
 
     def __call__(self, data: Mapping[Hashable, torch.Tensor]):
-        d = dict(data)
+        d = deepcopy(data)
         for key, refer_key in self.key_iterator(d, self.refer_keys):
             coords = d[key]
             affine = None  # represents using affine given in constructor
@@ -1900,7 +1900,7 @@ class ApplyTransformToPointsd(MapTransform, InvertibleTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter.inverse(d[key])
         return d

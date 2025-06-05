@@ -18,6 +18,7 @@ Class names are ended with 'd' to denote dictionary-based transforms.
 from __future__ import annotations
 
 from collections.abc import Hashable, Mapping, Sequence
+from copy import deepcopy
 from typing import Callable
 
 import numpy as np
@@ -215,7 +216,7 @@ class RandGaussianNoised(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -292,7 +293,7 @@ class RandRicianNoised(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -353,7 +354,7 @@ class ShiftIntensityd(MapTransform):
         self.shifter = ShiftIntensity(offset, safe)
 
     def __call__(self, data) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key, factor_key, meta_key, meta_key_postfix in self.key_iterator(
             d, self.factor_key, self.meta_keys, self.meta_key_postfix
         ):
@@ -429,7 +430,7 @@ class RandShiftIntensityd(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -485,7 +486,7 @@ class StdShiftIntensityd(MapTransform):
         self.shifter = StdShiftIntensity(factor, nonzero, channel_wise, dtype)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.shifter(d[key])
         return d
@@ -534,7 +535,7 @@ class RandStdShiftIntensityd(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -585,7 +586,7 @@ class ScaleIntensityd(MapTransform):
         self.scaler = ScaleIntensity(minv, maxv, factor, channel_wise, dtype)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.scaler(d[key])
         return d
@@ -633,7 +634,7 @@ class RandScaleIntensityd(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -705,7 +706,7 @@ class RandScaleIntensityFixedMeand(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -758,7 +759,7 @@ class RandBiasFieldd(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -813,7 +814,7 @@ class NormalizeIntensityd(MapTransform):
         self.normalizer = NormalizeIntensity(subtrahend, divisor, nonzero, channel_wise, dtype)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.normalizer(d[key])
         return d
@@ -846,7 +847,7 @@ class ThresholdIntensityd(MapTransform):
         self.filter = ThresholdIntensity(threshold, above, cval)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.filter(d[key])
         return d
@@ -885,7 +886,7 @@ class ScaleIntensityRanged(MapTransform):
         self.scaler = ScaleIntensityRange(a_min, a_max, b_min, b_max, clip, dtype)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.scaler(d[key])
         return d
@@ -915,7 +916,7 @@ class ClipIntensityPercentilesd(MapTransform):
         )
 
     def __call__(self, data: dict) -> dict:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.scaler(d[key])
         return d
@@ -960,7 +961,7 @@ class AdjustContrastd(MapTransform):
         self.adjuster = AdjustContrast(gamma, invert_image, retain_stats)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.adjuster(d[key])
         return d
@@ -1017,7 +1018,7 @@ class RandAdjustContrastd(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -1069,7 +1070,7 @@ class ScaleIntensityRangePercentilesd(MapTransform):
         self.scaler = ScaleIntensityRangePercentiles(lower, upper, b_min, b_max, clip, relative, channel_wise, dtype)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.scaler(d[key])
         return d
@@ -1111,7 +1112,7 @@ class MaskIntensityd(MapTransform):
         self.mask_key = mask_key if mask_data is None else None
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key], d[self.mask_key]) if self.mask_key is not None else self.converter(d[key])
         return d
@@ -1148,7 +1149,7 @@ class SavitzkyGolaySmoothd(MapTransform):
         self.converter = SavitzkyGolaySmooth(window_length=window_length, order=order, axis=axis, mode=mode)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -1175,7 +1176,7 @@ class MedianSmoothd(MapTransform):
         self.converter = MedianSmooth(radius)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -1210,7 +1211,7 @@ class GaussianSmoothd(MapTransform):
         self.converter = GaussianSmooth(sigma, approx=approx)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -1259,7 +1260,7 @@ class RandGaussianSmoothd(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -1308,7 +1309,7 @@ class GaussianSharpend(MapTransform):
         self.converter = GaussianSharpen(sigma1, sigma2, alpha, approx=approx)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -1376,7 +1377,7 @@ class RandGaussianSharpend(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: dict[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -1426,7 +1427,7 @@ class RandHistogramShiftd(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: dict[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -1485,7 +1486,7 @@ class RandGibbsNoised(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: dict[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -1525,7 +1526,7 @@ class GibbsNoised(MapTransform):
         self.transform = GibbsNoise(alpha)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.transform(d[key])
         return d
@@ -1590,7 +1591,7 @@ class KSpaceSpikeNoised(MapTransform):
             data: Expects image/label to have dimensions (C, H, W) or
                 (C, H, W, D), where C is the channel.
         """
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.transform(d[key])
         return d
@@ -1655,7 +1656,7 @@ class RandKSpaceSpikeNoised(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: dict[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -1733,7 +1734,7 @@ class RandCoarseDropoutd(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -1806,7 +1807,7 @@ class RandCoarseShuffled(RandomizableTransform, MapTransform):
         return self
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             for key in self.key_iterator(d):
@@ -1865,7 +1866,7 @@ class HistogramNormalized(MapTransform):
         self.mask_key = mask_key if mask is None else None
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.transform(d[key], d[self.mask_key]) if self.mask_key is not None else self.transform(d[key])
 
@@ -1910,7 +1911,7 @@ class ForegroundMaskd(MapTransform):
         self.new_key_prefix = new_key_prefix
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             new_key = key if self.new_key_prefix is None else self.new_key_prefix + key
             d[new_key] = self.transform(d[key])
@@ -1943,7 +1944,7 @@ class ComputeHoVerMapsd(MapTransform):
         self.new_key_prefix = new_key_prefix
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             new_key = key if self.new_key_prefix is None else self.new_key_prefix + key
             d[new_key] = self.transform(d[key])

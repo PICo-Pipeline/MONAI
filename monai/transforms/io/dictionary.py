@@ -17,6 +17,7 @@ Class names are ended with 'd' to denote dictionary-based transforms.
 
 from __future__ import annotations
 
+from copy import deepcopy
 from collections.abc import Hashable, Mapping
 from pathlib import Path
 from typing import Callable
@@ -158,7 +159,7 @@ class LoadImaged(MapTransform):
             KeyError: When not ``self.overwriting`` and key already exists in ``data``.
 
         """
-        d = dict(data)
+        d = deepcopy(data)
         for key, meta_key, meta_key_postfix in self.key_iterator(d, self.meta_keys, self.meta_key_postfix):
             data = self._loader(d[key], reader)
             if self._loader.image_only:
@@ -312,7 +313,7 @@ class SaveImaged(MapTransform):
         return self
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key, meta_key, meta_key_postfix in self.key_iterator(d, self.meta_keys, self.meta_key_postfix):
             if meta_key is None and meta_key_postfix is not None:
                 meta_key = f"{key}_{meta_key_postfix}"
@@ -340,7 +341,7 @@ class WriteFileMappingd(MapTransform):
         self.mapping = WriteFileMapping(mapping_file_path)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.mapping(d[key])
         return d

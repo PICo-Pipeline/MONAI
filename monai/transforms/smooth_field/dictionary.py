@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 from collections.abc import Hashable, Mapping, Sequence
 from typing import Any
 
@@ -106,7 +107,7 @@ class RandSmoothFieldAdjustContrastd(RandomizableTransform, MapTransform):
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> Mapping[Hashable, NdarrayOrTensor]:
         self.randomize()
-        d = dict(data)
+        d = deepcopy(data)
         if not self._do_transform:
             for key in self.key_iterator(d):
                 d[key] = convert_to_tensor(d[key], track_meta=get_track_meta())
@@ -183,7 +184,7 @@ class RandSmoothFieldAdjustIntensityd(RandomizableTransform, MapTransform):
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> Mapping[Hashable, NdarrayOrTensor]:
         self.randomize()
 
-        d = dict(data)
+        d = deepcopy(data)
         if not self._do_transform:
             for key in self.key_iterator(d):
                 d[key] = convert_to_tensor(d[key], track_meta=get_track_meta())
@@ -273,7 +274,7 @@ class RandSmoothDeformd(RandomizableTransform, MapTransform):
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> Mapping[Hashable, NdarrayOrTensor]:
         self.randomize()
 
-        d = dict(data)
+        d = deepcopy(data)
         if not self._do_transform:
             for key in self.key_iterator(d):
                 d[key] = convert_to_tensor(d[key], track_meta=get_track_meta())

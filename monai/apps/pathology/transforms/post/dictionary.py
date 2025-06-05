@@ -10,7 +10,7 @@
 # limitations under the License.
 
 from __future__ import annotations
-
+from copy import deepcopy
 from collections.abc import Callable, Hashable, Mapping
 
 import numpy as np
@@ -114,7 +114,7 @@ class Watershedd(MapTransform):
         self.transform = Watershed(connectivity=connectivity, dtype=dtype)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         markers = d[self.markers_key] if self.markers_key else None
         mask = d[self.mask_key] if self.mask_key else None
 
@@ -159,7 +159,7 @@ class GenerateWatershedMaskd(MapTransform):
         )
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             mask = self.transform(d[key])
             if self.mask_key in d:
@@ -202,7 +202,7 @@ class GenerateInstanceBorderd(Transform):
         self.transform = GenerateInstanceBorder(kernel_size=kernel_size, dtype=dtype)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         if self.border_key in d:
             raise KeyError(f"The key '{self.border_key}' for instance border map already exists.")
         d[self.border_key] = self.transform(d[self.mask_key], d[self.hover_map_key])
@@ -238,7 +238,7 @@ class GenerateDistanceMapd(Transform):
         self.transform = GenerateDistanceMap(smooth_fn=smooth_fn, dtype=dtype)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         if self.dist_map_key in d:
             raise KeyError(f"The key '{self.dist_map_key}' for distance map already exists.")
         d[self.dist_map_key] = self.transform(d[self.mask_key], d[self.border_key])
@@ -287,7 +287,7 @@ class GenerateWatershedMarkersd(Transform):
         )
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         if self.markers_key in d:
             raise KeyError(f"The key '{self.markers_key}' for markers already exists.")
         d[self.markers_key] = self.transform(d[self.mask_key], d[self.border_key])
@@ -315,7 +315,7 @@ class GenerateSuccinctContourd(MapTransform):
         self.converter = GenerateSuccinctContour(height=height, width=width)
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
 
@@ -358,7 +358,7 @@ class GenerateInstanceContourd(MapTransform):
         self.offset_key = offset_key
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             offset = d[self.offset_key] if self.offset_key else None
             contour = self.converter(d[key], offset)
@@ -400,7 +400,7 @@ class GenerateInstanceCentroidd(MapTransform):
         self.offset_key = offset_key
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             offset = d[self.offset_key] if self.offset_key else None
             centroid = self.converter(d[key], offset)
@@ -446,7 +446,7 @@ class GenerateInstanceTyped(MapTransform):
         self.instance_id_key = instance_id_key
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             seg = d[self.seg_pred_key]
             bbox = d[self.bbox_key]
@@ -531,7 +531,7 @@ class HoVerNetInstanceMapPostProcessingd(Transform):
         self.instance_map_key = instance_map_key
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
 
         for k in [self.instance_info_key, self.instance_map_key]:
             if k in d:
@@ -582,7 +582,7 @@ class HoVerNetNuclearTypePostProcessingd(Transform):
         self.return_type_map = return_type_map
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
 
         d[self.instance_info_key], type_map = self.type_post_process(
             d[self.type_prediction_key], d[self.instance_info_key], d[self.instance_map_key]

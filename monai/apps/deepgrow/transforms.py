@@ -11,6 +11,7 @@
 
 from __future__ import annotations
 
+from copy import deepcopy
 import json
 from collections.abc import Callable, Hashable, Iterable, Sequence
 from typing import Any
@@ -55,7 +56,7 @@ class FindAllValidSlicesd(Transform):
         return np.asarray(sids)
 
     def __call__(self, data: Any) -> dict:
-        d: dict = dict(data)
+        d: dict = deepcopy(data)
         label = d[self.label].numpy() if isinstance(data[self.label], torch.Tensor) else data[self.label]
         if label.shape[0] != 1:
             raise ValueError(f"Only supports single channel labels, got label shape {label.shape}!")
@@ -150,7 +151,7 @@ class AddInitialSeedPointd(Randomizable, Transform):
         return np.asarray([pos_guidance, [default_guidance] * len(pos_guidance)])
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(data)
         d[self.guidance] = json.dumps(self._apply(d[self.label], self.sid).astype(int, copy=False).tolist())
         return d
@@ -220,7 +221,7 @@ class AddGuidanceSignald(Transform):
         return np.concatenate([image, signal], axis=0)
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         image = d[self.image]
         guidance = d[self.guidance]
 
@@ -258,7 +259,7 @@ class FindDiscrepancyRegionsd(Transform):
         return self.disparity(label, pred)
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         label = d[self.label]
         pred = d[self.pred]
 
@@ -337,7 +338,7 @@ class AddRandomGuidanced(Randomizable, Transform):
         return json.dumps(np.asarray(guidance, dtype=int).tolist())
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         guidance = d[self.guidance]
         discrepancy = d[self.discrepancy]
 
@@ -431,7 +432,7 @@ class SpatialCropForegroundd(MapTransform):
         self.cropped_shape_key = cropped_shape_key
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         box_start, box_end = generate_spatial_bounding_box(
             d[self.source_key], self.select_fn, self.channel_indices, self.margin, self.allow_smaller
         )
@@ -545,7 +546,7 @@ class AddGuidanceFromPointsd(Transform):
         return guidance
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         meta_dict_key = self.meta_keys or f"{self.ref_image}_{self.meta_key_postfix}"
         if meta_dict_key not in d:
             raise RuntimeError(f"Missing meta_dict {meta_dict_key} in data!")
@@ -653,7 +654,7 @@ class SpatialCropGuidanced(MapTransform):
         return box_start, box_end
 
     def __call__(self, data: Any) -> dict:
-        d: dict = dict(data)
+        d: dict = deepcopy(data)
         first_key: Hashable = self.first_key(d)
         if first_key == ():
             return d
@@ -740,7 +741,7 @@ class ResizeGuidanced(Transform):
         self.cropped_shape_key = cropped_shape_key
 
     def __call__(self, data: Any) -> dict:
-        d = dict(data)
+        d = deepcopy(data)
         guidance = d[self.guidance]
         meta_dict: dict = d[self.meta_keys or f"{self.ref_image}_{self.meta_key_postfix}"]
         current_shape = d[self.ref_image].shape[1:]
@@ -851,7 +852,7 @@ class RestoreLabeld(MapTransform):
         self.restore_slicing = restore_slicing
 
     def __call__(self, data: Any) -> dict:
-        d = dict(data)
+        d = deepcopy(data)
         meta_dict: dict = d[f"{self.ref_image}_{self.meta_key_postfix}"]
 
         for key, mode, align_corners, meta_key in self.key_iterator(d, self.mode, self.align_corners, self.meta_keys):
@@ -962,7 +963,7 @@ class Fetch2DSliced(MapTransform):
         return image[tuple(idx)], tuple(idx)
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         guidance = d[self.guidance]
         if len(guidance) < 3:
             raise RuntimeError("Guidance does not container slice_idx!")

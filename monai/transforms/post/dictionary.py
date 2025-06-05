@@ -141,7 +141,7 @@ class Activationsd(MapTransform):
         self.converter.kwargs = kwargs
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key, sigmoid, softmax, other in self.key_iterator(d, self.sigmoid, self.softmax, self.other):
             d[key] = self.converter(d[key], sigmoid, softmax, other)
         return d
@@ -202,7 +202,7 @@ class AsDiscreted(MapTransform):
         self.converter.kwargs = kwargs
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key, argmax, to_onehot, threshold, rounding in self.key_iterator(
             d, self.argmax, self.to_onehot, self.threshold, self.rounding
         ):
@@ -259,7 +259,7 @@ class KeepLargestConnectedComponentd(MapTransform):
         )
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -303,7 +303,7 @@ class RemoveSmallObjectsd(MapTransform):
         self.converter = RemoveSmallObjects(min_size, connectivity, independent_channels, by_measure, pixdim)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -331,7 +331,7 @@ class LabelFilterd(MapTransform):
         self.converter = LabelFilter(applied_labels)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -368,7 +368,7 @@ class FillHolesd(MapTransform):
         self.converter = FillHoles(applied_labels=applied_labels, connectivity=connectivity)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -394,7 +394,7 @@ class LabelToContourd(MapTransform):
         self.converter = LabelToContour(kernel_type=kernel_type)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.converter(d[key])
         return d
@@ -438,7 +438,7 @@ class Ensembled(MapTransform):
         self.output_key = output_key if output_key is not None else self.keys[0]
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         items: list[NdarrayOrTensor] | NdarrayOrTensor
         if len(self.keys) == 1 and self.keys[0] in d:
             items = d[self.keys[0]]
@@ -556,7 +556,7 @@ class ProbNMSd(MapTransform):
         )
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.prob_nms(d[key])
         return d
@@ -653,7 +653,7 @@ class Invertd(MapTransform):
         self._totensor = ToTensor()
 
     def __call__(self, data: Mapping[Hashable, Any]) -> dict[Hashable, Any]:
-        d = dict(data)
+        d = deepcopy(data)
         for (
             key,
             orig_key,
@@ -792,7 +792,7 @@ class SaveClassificationd(MapTransform):
         self.meta_key_postfix = ensure_tuple_rep(meta_key_postfix, len(self.keys))
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key, meta_key, meta_key_postfix in self.key_iterator(d, self.meta_keys, self.meta_key_postfix):
             if meta_key is None and meta_key_postfix is not None:
                 meta_key = f"{key}_{meta_key_postfix}"
@@ -860,7 +860,7 @@ class SobelGradientsd(MapTransform):
         self.kernel_smooth = self.transform.kernel_smooth
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             new_key = key if self.new_key_prefix is None else self.new_key_prefix + key
             d[new_key] = self.transform(d[key])
@@ -906,7 +906,7 @@ class DistanceTransformEDTd(MapTransform):
         self.distance_transform = DistanceTransformEDT(sampling=self.sampling)
 
     def __call__(self, data: Mapping[Hashable, NdarrayOrTensor]) -> Mapping[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.distance_transform(img=d[key])
 

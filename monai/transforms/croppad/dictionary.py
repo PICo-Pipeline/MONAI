@@ -157,7 +157,7 @@ class Padd(MapTransform, InvertibleTransform, LazyTransform):
             self.padder.lazy = value
 
     def __call__(self, data: Mapping[Hashable, torch.Tensor], lazy: bool | None = None) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         lazy_ = self.lazy if lazy is None else lazy
         if lazy_ is True and not isinstance(self.padder, LazyTrait):
             raise ValueError(
@@ -172,7 +172,7 @@ class Padd(MapTransform, InvertibleTransform, LazyTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, MetaTensor]) -> dict[Hashable, MetaTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.padder.inverse(d[key])
         return d
@@ -355,14 +355,14 @@ class Cropd(MapTransform, InvertibleTransform, LazyTransform):
             self.cropper.lazy = value
 
     def __call__(self, data: Mapping[Hashable, torch.Tensor], lazy: bool | None = None) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         lazy_ = self.lazy if lazy is None else lazy
         for key in self.key_iterator(d):
             d[key] = self.cropper(d[key], lazy=lazy_)  # type: ignore
         return d
 
     def inverse(self, data: Mapping[Hashable, MetaTensor]) -> dict[Hashable, MetaTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.cropper.inverse(d[key])
         return d
@@ -399,7 +399,7 @@ class RandCropd(Cropd, Randomizable):
             self.cropper.randomize(img_size)
 
     def __call__(self, data: Mapping[Hashable, torch.Tensor], lazy: bool | None = None) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         # the first key must exist to execute random operations
         first_item = d[self.first_key(d)]
         self.randomize(first_item.peek_pending_shape() if isinstance(first_item, MetaTensor) else first_item.shape[1:])
@@ -787,7 +787,7 @@ class CropForegroundd(Cropd):
         return True
 
     def __call__(self, data: Mapping[Hashable, torch.Tensor], lazy: bool | None = None) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         self.cropper: CropForeground
         box_start, box_end = self.cropper.compute_bounding_box(img=d[self.source_key])
         if self.start_coord_key is not None:
@@ -990,7 +990,7 @@ class RandCropByPosNegLabeld(Randomizable, MapTransform, LazyTransform, MultiSam
     def __call__(
         self, data: Mapping[Hashable, torch.Tensor], lazy: bool | None = None
     ) -> list[dict[Hashable, torch.Tensor]]:
-        d = dict(data)
+        d = deepcopy(data)
         fg_indices = d.pop(self.fg_indices_key, None)
         bg_indices = d.pop(self.bg_indices_key, None)
 
@@ -1146,7 +1146,7 @@ class RandCropByLabelClassesd(Randomizable, MapTransform, LazyTransform, MultiSa
         return True
 
     def __call__(self, data: Mapping[Hashable, Any], lazy: bool | None = None) -> list[dict[Hashable, torch.Tensor]]:
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(d.get(self.label_key), d.pop(self.indices_key, None), d.get(self.image_key))  # type: ignore
 
         # initialize returned list with shallow copy to preserve key ordering
@@ -1237,7 +1237,7 @@ class BoundingRectd(MapTransform):
         """
         See also: :py:class:`monai.transforms.utils.generate_spatial_bounding_box`.
         """
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             bbox = self.bbox(d[key])
             key_to_add = f"{key}_{self.bbox_key_postfix}"

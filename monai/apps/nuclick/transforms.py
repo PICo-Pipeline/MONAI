@@ -10,7 +10,7 @@
 # limitations under the License.
 
 from __future__ import annotations
-
+from copy import deepcopy
 import math
 from typing import Any
 
@@ -63,7 +63,7 @@ class FlattenLabeld(MapTransform):
         self.connectivity = connectivity
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.keys:
             img = convert_to_numpy(d[key]) if isinstance(d[key], torch.Tensor) else d[key]
             d[key] = measure.label(img, connectivity=self.connectivity).astype(np.uint8)
@@ -99,7 +99,7 @@ class ExtractPatchd(MapTransform):
         self.kwargs = kwargs
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
 
         centroid = d[self.centroid_key]  # create mask based on centroid (select nuclei based on centroid)
         roi_size = (self.patch_size, self.patch_size)
@@ -159,7 +159,7 @@ class SplitLabeld(MapTransform):
         self.to_binary_mask = to_binary_mask
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
 
         if len(self.keys) > 1:
             print("Only 'label' key is supported, more than 1 key was found")
@@ -212,7 +212,7 @@ class FilterImaged(MapTransform):
         self.min_size = min_size
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.keys:
             img = convert_to_numpy(d[key]) if isinstance(d[key], torch.Tensor) else d[key]
             d[key] = self.filter(img)
@@ -310,7 +310,7 @@ class AddPointGuidanceSignald(Randomizable, MapTransform):
         self.use_distance = use_distance
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
 
         image = d[self.image] if isinstance(d[self.image], torch.Tensor) else torch.from_numpy(d[self.image])
         mask = d[self.label] if isinstance(d[self.label], torch.Tensor) else torch.from_numpy(d[self.label])
@@ -424,7 +424,7 @@ class AddClickSignalsd(MapTransform):
         self.add_exclusion_map = add_exclusion_map
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
 
         img = d[self.image] if isinstance(d[self.image], torch.Tensor) else torch.from_numpy(d[self.image])
         x = img.shape[-2]
@@ -560,7 +560,7 @@ class PostFilterLabeld(MapTransform):
         self.pred_classes = pred_classes
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
 
         pred_classes = d.get(self.pred_classes)
         bounding_boxes = d[self.bounding_boxes]
@@ -607,7 +607,7 @@ class AddLabelAsGuidanced(MapTransform):
         self.source = source
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.keys:
             image = d[key] if isinstance(d[key], torch.Tensor) else torch.from_numpy(d[key])
             label = d[self.source] if isinstance(d[self.source], torch.Tensor) else torch.from_numpy(d[self.source])
@@ -633,7 +633,7 @@ class SetLabelClassd(MapTransform):
         self.offset = offset
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.keys:
             label = d[key] if isinstance(d[key], torch.Tensor) else torch.from_numpy(d[key])
             mask_value = int(torch.max(label))
