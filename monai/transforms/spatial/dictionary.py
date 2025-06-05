@@ -239,7 +239,7 @@ class SpatialResampled(MapTransform, InvertibleTransform, LazyTransform):
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
         lazy_ = self.lazy if lazy is None else lazy
-        d: dict = dict(data)
+        d: dict = deepcopy(data)
         for key, mode, padding_mode, align_corners, dtype, dst_key in self.key_iterator(
             d, self.mode, self.padding_mode, self.align_corners, self.dtype, self.dst_keys
         ):
@@ -256,7 +256,7 @@ class SpatialResampled(MapTransform, InvertibleTransform, LazyTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.sp_transform.inverse(d[key])
         return d
@@ -341,7 +341,7 @@ class ResampleToMatchd(MapTransform, InvertibleTransform, LazyTransform):
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
         lazy_ = self.lazy if lazy is None else lazy
-        d = dict(data)
+        d = deepcopy(data)
         for key, mode, padding_mode, align_corners, dtype in self.key_iterator(
             d, self.mode, self.padding_mode, self.align_corners, self.dtype
         ):
@@ -357,7 +357,7 @@ class ResampleToMatchd(MapTransform, InvertibleTransform, LazyTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.resampler.inverse(d[key])
         return d
@@ -495,7 +495,7 @@ class Spacingd(MapTransform, InvertibleTransform, LazyTransform):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d: dict = dict(data)
+        d: dict = deepcopy(data)
 
         _init_shape, _pixdim, should_match = None, None, False
         output_shape_k = None  # tracking output shape
@@ -526,7 +526,7 @@ class Spacingd(MapTransform, InvertibleTransform, LazyTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.spacing_transform.inverse(cast(torch.Tensor, d[key]))
         return d
@@ -598,14 +598,14 @@ class Orientationd(MapTransform, InvertibleTransform, LazyTransform):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d: dict = dict(data)
+        d: dict = deepcopy(data)
         lazy_ = self.lazy if lazy is None else lazy
         for key in self.key_iterator(d):
             d[key] = self.ornt_transform(d[key], lazy=lazy_)
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.ornt_transform.inverse(d[key])
         return d
@@ -660,14 +660,14 @@ class Rotate90d(MapTransform, InvertibleTransform, LazyTransform):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         lazy_ = self.lazy if lazy is None else lazy
         for key in self.key_iterator(d):
             d[key] = self.rotator(d[key], lazy=lazy_)
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.rotator.inverse(d[key])
         return d
@@ -737,7 +737,7 @@ class RandRotate90d(RandomizableTransform, MapTransform, InvertibleTransform, La
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
         self.randomize()
-        d = dict(data)
+        d = deepcopy(data)
 
         # FIXME: here we didn't use array version `RandRotate90` transform as others, because we need
         # to be compatible with the random status of some previous integration tests
@@ -749,7 +749,7 @@ class RandRotate90d(RandomizableTransform, MapTransform, InvertibleTransform, La
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             if not isinstance(d[key], MetaTensor):
                 continue
@@ -844,7 +844,7 @@ class Resized(MapTransform, InvertibleTransform, LazyTransform):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         lazy_ = self.lazy if lazy is None else lazy
         for key, mode, align_corners, anti_aliasing, anti_aliasing_sigma, dtype in self.key_iterator(
             d, self.mode, self.align_corners, self.anti_aliasing, self.anti_aliasing_sigma, self.dtype
@@ -861,7 +861,7 @@ class Resized(MapTransform, InvertibleTransform, LazyTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.resizer.inverse(d[key])
         return d
@@ -987,13 +987,13 @@ class Affined(MapTransform, InvertibleTransform, LazyTransform):
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
         lazy_ = self.lazy if lazy is None else lazy
-        d = dict(data)
+        d = deepcopy(data)
         for key, mode, padding_mode in self.key_iterator(d, self.mode, self.padding_mode):
             d[key], _ = self.affine(d[key], mode=mode, padding_mode=padding_mode, lazy=lazy_)
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.affine.inverse(d[key])
         return d
@@ -1127,7 +1127,7 @@ class RandAffined(RandomizableTransform, MapTransform, InvertibleTransform, Lazy
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         first_key: Hashable = self.first_key(d)
         if first_key == ():
             out: dict[Hashable, NdarrayOrTensor] = convert_to_tensor(d, track_meta=get_track_meta())
@@ -1163,7 +1163,7 @@ class RandAffined(RandomizableTransform, MapTransform, InvertibleTransform, Lazy
         return d
 
     def inverse(self, data: Mapping[Hashable, NdarrayOrTensor]) -> dict[Hashable, NdarrayOrTensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             tr = self.pop_transform(d[key])
             if TraceKeys.EXTRA_INFO not in tr[TraceKeys.EXTRA_INFO]:
@@ -1287,7 +1287,7 @@ class Rand2DElasticd(RandomizableTransform, MapTransform):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         first_key: Hashable = self.first_key(d)
 
         if first_key == ():
@@ -1438,7 +1438,7 @@ class Rand3DElasticd(RandomizableTransform, MapTransform):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         first_key: Hashable = self.first_key(d)
 
         if first_key == ():
@@ -1518,14 +1518,14 @@ class Flipd(MapTransform, InvertibleTransform, LazyTransform):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         lazy_ = self.lazy if lazy is None else lazy
         for key in self.key_iterator(d):
             d[key] = self.flipper(d[key], lazy=lazy_)
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.flipper.inverse(d[key])
         return d
@@ -1587,7 +1587,7 @@ class RandFlipd(RandomizableTransform, MapTransform, InvertibleTransform, LazyTr
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
 
         lazy_ = self.lazy if lazy is None else lazy
@@ -1600,7 +1600,7 @@ class RandFlipd(RandomizableTransform, MapTransform, InvertibleTransform, LazyTr
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             xform = self.pop_transform(d[key])
             if not xform[TraceKeys.DO_TRANSFORM]:
@@ -1661,7 +1661,7 @@ class RandAxisFlipd(RandomizableTransform, MapTransform, InvertibleTransform, La
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         first_key: Hashable = self.first_key(d)
         if first_key == ():
             return d
@@ -1681,7 +1681,7 @@ class RandAxisFlipd(RandomizableTransform, MapTransform, InvertibleTransform, La
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             xform = self.pop_transform(d[key])
             if xform[TraceKeys.DO_TRANSFORM]:
@@ -1764,7 +1764,7 @@ class Rotated(MapTransform, InvertibleTransform, LazyTransform):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         lazy_ = self.lazy if lazy is None else lazy
         for key, mode, padding_mode, align_corners, dtype in self.key_iterator(
             d, self.mode, self.padding_mode, self.align_corners, self.dtype
@@ -1775,7 +1775,7 @@ class Rotated(MapTransform, InvertibleTransform, LazyTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.rotator.inverse(d[key])
         return d
@@ -1872,7 +1872,7 @@ class RandRotated(RandomizableTransform, MapTransform, InvertibleTransform, Lazy
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
 
         # all the keys share the same random rotate angle
@@ -1898,7 +1898,7 @@ class RandRotated(RandomizableTransform, MapTransform, InvertibleTransform, Lazy
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             xform = self.pop_transform(d[key])
             if xform[TraceKeys.DO_TRANSFORM]:
@@ -1987,7 +1987,7 @@ class Zoomd(MapTransform, InvertibleTransform, LazyTransform):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         lazy_ = self.lazy if lazy is None else lazy
         for key, mode, padding_mode, align_corners, dtype in self.key_iterator(
             d, self.mode, self.padding_mode, self.align_corners, self.dtype
@@ -1998,7 +1998,7 @@ class Zoomd(MapTransform, InvertibleTransform, LazyTransform):
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.zoomer.inverse(d[key])
         return d
@@ -2100,7 +2100,7 @@ class RandZoomd(RandomizableTransform, MapTransform, InvertibleTransform, LazyTr
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         first_key: Hashable = self.first_key(d)
         if first_key == ():
             out: dict[Hashable, torch.Tensor] = convert_to_tensor(d, track_meta=get_track_meta())
@@ -2131,7 +2131,7 @@ class RandZoomd(RandomizableTransform, MapTransform, InvertibleTransform, LazyTr
         return d
 
     def inverse(self, data: Mapping[Hashable, torch.Tensor]) -> dict[Hashable, torch.Tensor]:
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             xform = self.pop_transform(d[key])
             if xform[TraceKeys.DO_TRANSFORM]:
@@ -2196,7 +2196,7 @@ class GridDistortiond(MapTransform):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         for key, mode, padding_mode in self.key_iterator(d, self.mode, self.padding_mode):
             d[key] = self.grid_distortion(d[key], mode=mode, padding_mode=padding_mode)
         return d
@@ -2271,7 +2271,7 @@ class RandGridDistortiond(RandomizableTransform, MapTransform):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         self.randomize(None)
         if not self._do_transform:
             out: dict[Hashable, torch.Tensor] = convert_to_tensor(d, track_meta=get_track_meta())
@@ -2330,7 +2330,7 @@ class GridSplitd(MapTransform, MultiSampleTrait):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         n_outputs = np.prod(self.grid)
         output: list[dict[Hashable, NdarrayOrTensor]] = [dict(d) for _ in range(n_outputs)]
         for key in self.key_iterator(d):
@@ -2420,7 +2420,7 @@ class GridPatchd(MapTransform, MultiSampleTrait):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             d[key] = self.patcher(d[key])
         return d
@@ -2517,7 +2517,7 @@ class RandGridPatchd(RandomizableTransform, MapTransform, MultiSampleTrait):
         Returns:
             a dictionary containing the transformed data, as well as any other data present in the dictionary
         """
-        d = dict(data)
+        d = deepcopy(data)
         # All the keys share the same random noise
         for key in self.key_iterator(d):
             self.patcher.randomize(d[key])
@@ -2599,7 +2599,7 @@ class RandSimulateLowResolutiond(RandomizableTransform, MapTransform):
                 in this dictionary must be tensor like arrays that are channel first and have at most
                 three spatial dimensions
         """
-        d = dict(data)
+        d = deepcopy(data)
         first_key: Hashable = self.first_key(d)
         if first_key == ():
             out: dict[Hashable, NdarrayOrTensor] = convert_to_tensor(d, track_meta=get_track_meta())
@@ -2642,7 +2642,7 @@ class ConvertBoxToPointsd(MapTransform):
         self.converter = ConvertBoxToPoints(mode=mode)
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             data[self.point_key] = self.converter(d[key])
         return data
@@ -2665,7 +2665,7 @@ class ConvertPointsToBoxesd(MapTransform):
         self.converter = ConvertPointsToBoxes()
 
     def __call__(self, data):
-        d = dict(data)
+        d = deepcopy(data)
         for key in self.key_iterator(d):
             data[self.box_key] = self.converter(d[key])
         return data
